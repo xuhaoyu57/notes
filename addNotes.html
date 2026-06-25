@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>添加运营笔记</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        :root {
+            /* 缩小基础字号 */
+            --pico-font-size: 87.5%;
+            /* 按钮、输入框上下内边距缩小 */
+            --pico-form-element-padding-block: 0.3rem;
+            --pico-form-element-padding-inline: 0.6rem;
+            /* 行高缩小 */
+            --pico-line-height: 1.4;
+        }
+
+        body {
+            background-color: #EAECEB;
+            height: 100vh;
+            padding-top: 50px;
+        }
+
+        .div_center {
+            margin: auto;
+            width: 80%;
+        }
+
+        .img {
+            height: 100px;
+            margin-right: 20px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+
+<body>
+    <div id="app">
+        <div class="div_center"><input type="text" placeholder="请输入标题" v-model="form.title"></div>
+        <div class="div_center"><textarea name="" id="" placeholder="请输入笔记内容" v-model="form.content"></textarea></div>
+        <!-- <a href="./24.html">24点</a> -->
+        <div class="div_center"> <select name="" id="" v-model="form.type">
+                <option :value="1">电商</option>
+                <option :value="2">前端</option>
+            </select>
+        </div>
+        <div class="div_center"><input type="file" multiple @change="changeImg"></div>
+        <div class="div_center" style="margin-bottom: 20px;display: flex;">
+            <div v-for="(url, i) in urls" :key="i">
+                <img class="img" :src="url" alt="">
+                <p @click="delImg(url,i)" style="margin-top: 5px; color: rgb(100, 123, 252);cursor: pointer;">删除</p>
+            </div>
+
+        </div>
+        <div class="div_center"><input type="text" v-model="form.label" placeholder="请输入标签"></div>
+        <div class="div_center"><button @click="add">添加数据</button></div>
+
+    </div>
+</body>
+
+<script type="module">
+    import { API, key, img_url, getData, postData, uplaodImg, delImg } from './index.js';
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                form: {
+                    title: '',//标题
+                    content: '',//笔记内容
+                    type: 1,//1开头是电商 2开头是前端
+                    label: '',//标签
+                    remark: '',//备注
+                    level: '',//笔记等级
+                    img_url: '',
+                },
+                urls: []
+            }
+        },
+        created() {
+
+        },
+        methods: {
+            async add() {
+                if (this.form.content == '' || this.form.title == '') return alert('请填写标题和笔记内容');
+                const res = await postData('notes_list', this.form)
+                if (res.status == 201) {
+                    alert('添加成功')
+                }
+            },
+            async changeImg({ target: { files } }) {
+                // const file = document.querySelector("input").files[0];
+                console.log(files);
+                const PromiseArr = []
+                Array.from(files).forEach(file => {
+                    PromiseArr.push(uplaodImg(file))
+                });
+                this.urls.push(await Promise.all(PromiseArr))
+                this.urls = this.urls.flat(1)
+                this.form.img_url = this.urls.join(',')
+            },
+            delImg(url, i) {
+                this.urls.splice(i, 1)
+                delImg(url)
+            }
+        }
+    })
+
+
+
+
+
+
+</script>

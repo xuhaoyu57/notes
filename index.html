@@ -22,13 +22,14 @@
 <body>
     <div id="app">
         <!-- <a href="./24.html">24点</a> -->
-        <button @click="add">添加数据</button>
-        <input type="file" multiple @change="changeImg">
+        <button @click="add">做笔记</button>
+        <!-- <textarea name="" id=""></textarea>
+        <input type="file" multiple @change="changeImg"> -->
     </div>
 </body>
 
 <script type="module">
-    import { url, key, img_url } from './index.js';
+    import { API, key, img_url, getData, postData, uplaodImg } from './index.js';
 
     new Vue({
         el: '#app',
@@ -42,69 +43,39 @@
         },
         methods: {
             getData() {
-                fetch(url + 'notes_list', {
-                    method: "GET",
-                    headers: {
-                        apikey: key,
-                        Authorization: `Bearer ${key}`
-                    }
-                })
-                    .then(res => res.json())
-                    .then(data => console.log(data));
+                // console.log(getData);
+
+                getData('notes_list')
+                //    
             },
-            add() {
-                fetch(url + 'notes_list', {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "apikey": key,
-                        "Authorization": `Bearer ${key}`,
-                        "Prefer": "return=representation"
-                    },
-                    body: JSON.stringify({
-                        sku: "8811",
-                        content: "笔记内容",
-                        type: 2,//1开头是电商 2开头是前端
-                        remark: "无",
-                        title: "无",
-                        level: 1
-                    })
-                })
-                    .then(res => res.json())
-                    .then(data => console.log("插入成功：", data));
+            async add() {
+                location.href="./addNotes.html"
+                // const res = await postData('notes_list', {
+                //     sku: "8811",
+                //     content: "笔记内容",
+                //     type: 2,//1开头是电商 2开头是前端
+                //     remark: "无",
+                //     title: "无",
+                //     level: 1
+                // })
+                // if (res.status == 201) {
+                //     alert('添加成功')
+                // }
             },
-            changeImg({target:{files}}) {
+            async changeImg({ target: { files } }) {
                 // const file = document.querySelector("input").files[0];
                 console.log(files);
-                
+
                 Array.from(files).forEach(file => {
                     // file.name=file.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9._-]/g, "");
                     // console.log(123);
-                    
+
                 });
-                const file= files[0]
+                const file = files[0]
+                const url = await uplaodImg(file)
+                console.log(url);
 
-                const url = "https://daixzsefottmustefsuj.supabase.co/storage/v1/object/images/" + file.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9._-]/g, "")
-                // return
-                fetch(url, {
-                    method: "POST",
-                    headers: {
-                        apikey: key,
-                        "Authorization": `Bearer ${key}`,
-                        "Content-Type": file.type
-                    },
-                    body: file
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        console.log("上传成功", data);
 
-                        const publicUrl =
-                            "https://daixzsefottmustefsuj.supabase.co/storage/v1/object/public/images/" +
-                            file.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9._-]/g, "")
-
-                        console.log("图片URL：", publicUrl);
-                    });
             }
         }
     })
