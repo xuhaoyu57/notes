@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 关键：移动端适配 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24点输入</title>
+</head>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f7fb;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        /* width: 320px; */
+        text-align: center;
+    }
+
+    h2 {
+        margin-bottom: 20px;
+        font-size: 20px;
+    }
+
+    input {
+        width: 70px;
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        text-align: center;
+        outline: none;
+    }
+
+    input:focus {
+        border-color: #4a90e2;
+        box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        background: #4a90e2;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: #357bd8;
+    }
+
+    h3 {
+        margin-top: 20px;
+        font-size: 16px;
+        color: #333;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <h2 style="text-align: start;"><a style="text-decoration: none;color: #000;" href="./index.html">返回笔记</a></h2>
+        <h2>输入4个数字</h2>
+        <div style="display: flex;">
+            <input type="number" id="num1" placeholder="数字1">
+            <input type="number" id="num2" placeholder="数字2">
+            <input type="number" id="num3" placeholder="数字3">
+            <input type="number" id="num4" placeholder="数字4">
+        </div>
+
+
+        <br><br>
+
+        <button onclick="submitNumbers()">确认</button>
+
+        <h3>答案：<span id="ans"></span></h3>
+
+    </div>
+
+    <script>
+        function submitNumbers() {
+            const n1 = document.getElementById('num1').value;
+            const n2 = document.getElementById('num2').value;
+            const n3 = document.getElementById('num3').value;
+            const n4 = document.getElementById('num4').value;
+
+
+            let res = canMake24([n1, n2, n3, n4].map(Number));
+            let text = ''
+            if (res.canMake24) { text = res.formulas[0] }
+            else { text = '无解' }
+
+            document.getElementById('ans').innerText = text
+        }
+
+        function canMake24(nums) {
+            const ops = ['+', '-', '*', '/']; // 定义可用的四则运算符
+
+            // 安全计算函数：对两个数字 a 和 b 使用操作符 op 进行计算
+            // 除法时，如果除数为0返回 null，避免报错
+            function calculate(a, op, b) {
+                if (op === '+') return a + b;
+                if (op === '-') return a - b;
+                if (op === '*') return a * b;
+                if (op === '/') return b !== 0 ? a / b : null;
+                return null;
+            }
+
+            // 生成数组的所有排列组合
+            function permute(arr) {
+                if (arr.length === 0) return [[]]; // 空数组的排列只有一个空数组
+                const result = [];
+                for (let i = 0; i < arr.length; i++) {
+                    // 将第 i 个元素取出，剩下的数组递归排列
+                    const rest = arr.slice(0, i).concat(arr.slice(i + 1));
+                    for (const p of permute(rest)) {
+                        result.push([arr[i], ...p]); // 把取出的元素加到每个排列的开头
+                    }
+                }
+                return result;
+            }
+
+            // 生成长度为 n 的所有操作符组合
+            function opCombos(n) {
+                if (n === 0) return [[]]; // 长度为0的组合只有一个空数组
+                const result = [];
+                for (const op of ops) {
+                    for (const combo of opCombos(n - 1)) {
+                        result.push([op, ...combo]); // 在每个组合前加上当前操作符
+                    }
+                }
+                return result;
+            }
+
+            // 检查四个数字 a, b, c, d 用三个操作符 op1, op2, op3 是否能得到 24
+            function evalExpr(a, b, c, d, op1, op2, op3) {
+                const results = []; // 保存所有能得到 24 的表达式字符串
+
+                function tryPush(val, expr) {
+                    // 如果结果不为 null 且接近24，就加入结果数组
+                    if (val !== null && Math.abs(val - 24) < 1e-6) {
+                        results.push(expr);
+                    }
+                }
+
+                // 枚举5种不同的括号组合方式，模拟不同运算顺序
+
+                // 1: ((a op1 b) op2 c) op3 d
+                let r1 = calculate(a, op1, b);
+                let r2 = r1 !== null ? calculate(r1, op2, c) : null;
+                tryPush(calculate(r2, op3, d), `(( ${a} ${op1} ${b} ) ${op2} ${c} ) ${op3} ${d}`);
+
+                // 2: (a op1 (b op2 c)) op3 d
+                r1 = calculate(b, op2, c);
+                r2 = r1 !== null ? calculate(a, op1, r1) : null;
+                tryPush(calculate(r2, op3, d), `( ${a} ${op1} ( ${b} ${op2} ${c} ) ) ${op3} ${d}`);
+
+                // 3: a op1 ((b op2 c) op3 d)
+                r1 = calculate(b, op2, c);
+                r2 = r1 !== null ? calculate(r1, op3, d) : null;
+                tryPush(calculate(a, op1, r2), `${a} ${op1} (( ${b} ${op2} ${c} ) ${op3} ${d})`);
+
+                // 4: a op1 (b op2 (c op3 d))
+                r1 = calculate(c, op3, d);
+                r2 = r1 !== null ? calculate(b, op2, r1) : null;
+                tryPush(calculate(a, op1, r2), `${a} ${op1} ( ${b} ${op2} ( ${c} ${op3} ${d} ) )`);
+
+                // 5: (a op1 b) op2 (c op3 d)
+                r1 = calculate(a, op1, b);
+                r2 = calculate(c, op3, d);
+                tryPush(calculate(r1, op2, r2), `( ${a} ${op1} ${b} ) ${op2} ( ${c} ${op3} ${d} )`);
+
+                return results; // 返回所有能得到24的表达式
+            }
+
+            const numPerms = permute(nums); // 四个数字的所有排列
+            const opPerms = opCombos(3);    // 三个操作符的所有组合
+
+            // 遍历每一种数字排列和操作符组合
+            for (const [a, b, c, d] of numPerms) {
+                for (const [op1, op2, op3] of opPerms) {
+                    const res = evalExpr(a, b, c, d, op1, op2, op3);
+                    if (res.length > 0) {
+                        // 如果存在可以得到24的表达式，立即返回
+                        return { canMake24: true, formulas: res };
+                    }
+                }
+            }
+
+            // 遍历完成都没找到，则无法得到24
+            return { canMake24: false, formulas: [] };
+        }
+    </script>
+
+</body>
+
+</html>
