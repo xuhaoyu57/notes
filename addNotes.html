@@ -31,6 +31,27 @@
             height: 100px;
             margin-right: 20px;
         }
+
+        .tags-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .tags-filter a {
+            text-decoration: none;
+            padding: 4px 10px;
+            border: 1px solid #aaa;
+            border-radius: 999px;
+            font-size: .9rem;
+        }
+
+        .tags-filter a.active {
+            font-weight: bold;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -38,12 +59,15 @@
 
 <body>
     <div id="app">
+        <div class="div_center" style="margin-bottom: 20px;">
+            <button @click="toIndex">返回首页</button>
+        </div>
         <div class="div_center"><input type="text" placeholder="请输入标题" v-model="form.title"></div>
         <div class="div_center"><textarea name="" id="" placeholder="请输入笔记内容" v-model="form.content"></textarea></div>
         <!-- <a href="./24.html">24点</a> -->
         <div class="div_center"> <select name="" id="" v-model="form.type">
-                <option :value="1">电商</option>
-                <option :value="2">前端</option>
+                <option :value="0">电商</option>
+                <option :value="1">前端</option>
             </select>
         </div>
         <div class="div_center"><input type="file" multiple @change="changeImg"></div>
@@ -54,8 +78,16 @@
             </div>
 
         </div>
-        <div class="div_center"><input type="text" v-model="form.label" placeholder="请输入标签"></div>
-        <div class="div_center"><button @click="add">添加数据</button></div>
+        <div class="div_center">
+            <div class="tags-filter">
+                <a v-for="item in labelList" @click="selectLabel(item.label)" :class="{active:form.label==item.label}"
+                    href="#">{{item.label}}</a>
+            </div>
+        </div>
+        <div class="div_center"><input type="text" v-model="form.label" placeholder="请选择或者输入标签"></div>
+        <div class="div_center">
+            <button @click="add">添加数据</button>
+        </div>
 
     </div>
 </body>
@@ -70,23 +102,48 @@
                 form: {
                     title: '',//标题
                     content: '',//笔记内容
-                    type: 1,//1开头是电商 2开头是前端
+                    type: 0,//0开头是电商 1开头是前端
                     label: '',//标签
                     remark: '',//备注
-                    level: '',//笔记等级
+                    level: 1,//笔记等级
                     img_url: '',
                 },
-                urls: []
+                urls: [],
+                labelList: []
             }
         },
         created() {
-
+            this.getLabel()
         },
         methods: {
+            selectLabel(label) {
+                this.form.label = label
+            },
+            toIndex() {
+                location.href = "./index.html"
+            },
+            async getLabel() {
+                this.labelList = await getData('label_list')
+            },
             async add() {
                 if (this.form.content == '' || this.form.title == '') return alert('请填写标题和笔记内容');
                 const res = await postData('notes_list', this.form)
+                if (!this.labelList.some(item => item.label == this.form.label)) {
+                    await postData('label_list', {
+                        label: this.form.label
+                    })
+                }
                 if (res.status == 201) {
+                    this.form = {
+                        title: '',//标题
+                        content: '',//笔记内容
+                        type: 0,//0开头是电商 1开头是前端
+                        label: '实验',//标签
+                        remark: '',//备注
+                        level: 1,//笔记等级
+                        img_url: '',
+                    }
+                    this.urls = []
                     alert('添加成功')
                 }
             },

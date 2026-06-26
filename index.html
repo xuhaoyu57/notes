@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>运营笔记</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
             /* 缩小基础字号 */
@@ -15,16 +16,193 @@
             /* 行高缩小 */
             --pico-line-height: 1.4;
         }
+
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        aside {
+            width: 220px;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+        }
+
+        main {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .category a {
+            display: block;
+            padding: 10px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-bottom: 8px;
+        }
+
+        .category a.active {
+            font-weight: bold;
+        }
+
+        .note {
+            margin-bottom: 24px;
+        }
+
+        .note footer {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: .9rem;
+            align-items: center
+        }
+
+        .tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            border: 1px solid #999;
+        }
+
+        .content {
+            margin-top: 10px;
+            white-space: pre-line;
+            margin-bottom: 20px;
+        }
+
+        .tags-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .tags-filter a {
+            text-decoration: none;
+            padding: 4px 10px;
+            border: 1px solid #aaa;
+            border-radius: 999px;
+            font-size: .9rem;
+        }
+
+        .tags-filter a.active {
+            font-weight: bold;
+        }
+
+        /* 手机端 */
+        @media (max-width: 768px) {
+
+            .layout {
+                flex-direction: column;
+                height: auto;
+            }
+
+            aside {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                padding: 16px;
+            }
+
+            main {
+                padding: 16px;
+            }
+
+            /* 分类横向滚动 */
+            .category {
+                display: flex;
+                gap: 10px;
+                overflow-x: auto;
+                padding-bottom: 4px;
+            }
+
+            .category a {
+                margin: 0;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            /* 图片稍微缩小 */
+            .images {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .note h3 {
+                font-size: 1.2rem;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
 </head>
 
 <body>
-    <div id="app">
-        <!-- <a href="./24.html">24点</a> -->
-        <button @click="add">做笔记</button>
-        <!-- <textarea name="" id=""></textarea>
-        <input type="file" multiple @change="changeImg"> -->
+    <div id="app" v-cloak>
+
+        <div class="layout">
+
+            <aside>
+
+                <h4>📚 分类</h4>
+
+                <nav class="category">
+                    <a v-for="(item,i) in type" @click="changeType(i)" href="#"
+                        :class="{ active: typeIndex==i }">{{item}}</a>
+                </nav>
+                <hr>
+
+                <!-- 标签 -->
+                <h4>🏷 标签</h4>
+
+                <div class="tags-filter">
+                    <a @click="selectLabel('全部')" href="#" :class="{active:label=='全部'}">全部</a>
+                    <a v-for="item in labelList" @click="selectLabel(item.label)" :class="{active:label==item.label}"
+                        href="#">{{item.label}}</a>
+                </div>
+
+                <hr>
+
+                <button @click="add">做笔记</button>
+            </aside>
+
+            <main>
+
+                <article class="note" v-for="item in list">
+
+                    <header>
+                        <!-- {{item}} -->
+                        <h3>{{item.title}}</h3>
+                    </header>
+
+                    <div class="content">
+                        {{item.content}}
+                    </div>
+                    <!-- 图片 -->
+                    <div class="images" v-if="item.img_url">
+                        <img v-for="(img,i) in item.img_url.split(',')" style="margin-bottom: 10px;height: 150px"
+                            :src="img" alt="">
+                    </div>
+                    <footer>
+                        <strong>分类：</strong>{{type[item.type]}}
+
+                        <span class="tag">{{item.label}}</span>
+                    </footer>
+
+                </article>
+            </main>
+        </div>
     </div>
 </body>
 
@@ -35,48 +213,37 @@
         el: '#app',
         data() {
             return {
-                msg: '原生引入Vue成功'
+                list: [],
+                type: ['运营笔记', '前端笔记'],//其实应该建表，但是懒得建了
+                typeIndex: 0,
+                label: '全部',
+                labelList: [],
             }
         },
         created() {
             this.getData()
+            this.getLabel()
         },
         methods: {
-            getData() {
-                // console.log(getData);
-
-                getData('notes_list')
-                //    
+            selectLabel(label) {
+                this.label = label
+                this.getData()
+            },
+            async getLabel() {
+                this.labelList = await getData('label_list')
+            },
+            async getData() {
+                const form = { limit: 20, type: this.typeIndex }
+                if (this.label != '全部') form.label = this.label
+                this.list = await getData('notes_list', form)
+            },
+            async changeType(i) {
+                this.typeIndex = i
+                this.list = await getData('notes_list', { type: i })
             },
             async add() {
-                location.href="./addNotes.html"
-                // const res = await postData('notes_list', {
-                //     sku: "8811",
-                //     content: "笔记内容",
-                //     type: 2,//1开头是电商 2开头是前端
-                //     remark: "无",
-                //     title: "无",
-                //     level: 1
-                // })
-                // if (res.status == 201) {
-                //     alert('添加成功')
-                // }
+                location.href = "./addNotes.html"
             },
-            async changeImg({ target: { files } }) {
-                // const file = document.querySelector("input").files[0];
-                console.log(files);
-
-                Array.from(files).forEach(file => {
-                    // file.name=file.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9._-]/g, "");
-                    // console.log(123);
-
-                });
-                const file = files[0]
-                const url = await uplaodImg(file)
-                console.log(url);
-
-
-            }
         }
     })
 
