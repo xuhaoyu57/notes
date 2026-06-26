@@ -3,7 +3,7 @@ export const key = "sb_publishable_hygvKth7LB1Xd2Ls0FQXJw_Sr_SiZL_"; // 用 publ
 export const img_url = "https://daixzsefottmustefsuj.supabase.co/storage/v1/object/images/";//操作图片API接口
 // export const publicUrl = "https://daixzsefottmustefsuj.supabase.co/storage/v1/object/public/images/"//获取图片接口
 //获取数据
-export async function getData(url, params = {}) {
+export async function getData(url, params = {},callback) {
     const special = ["limit", "offset", "order", "select"];//这些跳过不添加eq，eq是筛选条件的
     const query = Object.entries(params)
         .map(([key, value]) => {
@@ -18,9 +18,15 @@ export async function getData(url, params = {}) {
         method: "GET",
         headers: {
             apikey: key,
-            Authorization: `Bearer ${key}`
+            Authorization: `Bearer ${key}`,
+            Prefer: "count=exact",//暴露响应头
         },
     })
+    res.totalCount = Number(
+        res.headers.get("Content-Range").split("/")[1]
+    );
+    res.totalPage = Math.ceil(res.totalCount / 20);
+    if(callback)callback(res)
     return await res.json()
 }
 //添加数据

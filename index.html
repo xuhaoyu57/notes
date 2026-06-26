@@ -102,6 +102,19 @@
             font-weight: bold;
         }
 
+        .pagination {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .pagination span {
+            min-width: 90px;
+            text-align: center;
+        }
+
         /* 手机端 */
         @media (max-width: 768px) {
 
@@ -201,6 +214,16 @@
                     </footer>
 
                 </article>
+                <!-- 分页 -->
+                <nav class="pagination">
+
+                    <button @click="changePage(-1)">上一页</button>
+
+                    <span>第 {{pageIndex}} / {{totalPage}} 页</span>
+
+                    <button @click="changePage(1)">下一页</button>
+
+                </nav>
             </main>
         </div>
     </div>
@@ -218,6 +241,9 @@
                 typeIndex: 0,
                 label: '全部',
                 labelList: [],
+                totalCount: 0,
+                totalPage: 0,
+                pageIndex: 1,
             }
         },
         created() {
@@ -233,9 +259,13 @@
                 this.labelList = await getData('label_list')
             },
             async getData() {
-                const form = { limit: 20, type: this.typeIndex }
+                const form = { limit: 20, type: this.typeIndex, offset: 0 }
+                form.offset = 20 * (this.pageIndex - 1)
                 if (this.label != '全部') form.label = this.label
-                this.list = await getData('notes_list', form)
+                this.list = await getData('notes_list', form, (res) => {
+                    this.totalCount = res.totalCount
+                    this.totalPage = res.totalPage
+                })
             },
             async changeType(i) {
                 this.typeIndex = i
@@ -244,6 +274,12 @@
             async add() {
                 location.href = "./addNotes.html"
             },
+            changePage(num) {
+                this.pageIndex += num
+                if (this.pageIndex < 1) return this.pageIndex = 1
+                if (this.pageIndex > this.totalPage) return this.pageIndex = this.totalPage
+                this.getData()
+            }
         }
     })
 
