@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>添加运营笔记</title>
+    <title>运营笔记编辑</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <style>
         :root {
@@ -70,7 +70,7 @@
                 <option :value="1">前端</option>
             </select>
         </div>
-        <div class="div_center"><input type="file" multiple @change="changeImg"></div>
+        <div class="div_center"><input type="file" multiple accept="image/*" @change="changeImg"></div>
         <div class="div_center" style="margin-bottom: 20px;display: flex;">
             <div v-for="(url, i) in urls" :key="i">
                 <img class="img" :src="url" alt="">
@@ -86,19 +86,20 @@
         </div>
         <div class="div_center"><input type="text" v-model="form.label" placeholder="请选择或者输入标签"></div>
         <div class="div_center">
-            <button @click="add">添加数据</button>
+            <button @click="add">保存</button>
         </div>
 
     </div>
 </body>
 
 <script type="module">
-    import { API, key, img_url, getData, postData, uplaodImg, delImg } from './index.js';
+    import { API, key, img_url, getData, postData, uplaodImg, delImg,editData } from './index.js';
 
     new Vue({
         el: '#app',
         data() {
             return {
+                id:'',
                 form: {
                     title: '',//标题
                     content: '',//笔记内容
@@ -112,8 +113,23 @@
                 labelList: []
             }
         },
-        created() {
+        async created() {
             this.getLabel()
+            const params = new URLSearchParams(window.location.search);
+            this.id = params.get("id");
+            if (this.id) {
+                const res = await getData('notes_list', { id: this.id })
+                if (res[0]) this.form = res[0]
+                if (this.form.img_url) {
+                    this.urls = this.form.img_url.split(',')
+                }
+            }
+
+        },
+        watch:{
+            urls(newVal, oldVal){
+                this.form.img_url = newVal.join(',')
+            }
         },
         methods: {
             selectLabel(label) {
@@ -126,13 +142,17 @@
                 this.labelList = await getData('label_list')
             },
             async add() {
+                let Fn = postData
+                if(this.id) Fn = editData
                 if (this.form.content == '' || this.form.title == '') return alert('请填写标题和笔记内容');
-                const res = await postData('notes_list', this.form)
-                if (!this.labelList.some(item => item.label == this.form.label)) {
+                const res = await Fn('notes_list', this.form)
+                if (!this.labelList.some(item => item.label == this.form.label) && this.form.label != '') {
                     await postData('label_list', {
                         label: this.form.label
                     })
                 }
+                console.log(res);
+                
                 if (res.status == 201) {
                     this.form = {
                         title: '',//标题
@@ -145,6 +165,9 @@
                     }
                     this.urls = []
                     alert('添加成功')
+                }else if(res.status==200){
+                    alert('更新成功')
+                    this.toIndex()
                 }
             },
             async changeImg({ target: { files } }) {
@@ -156,7 +179,6 @@
                 });
                 this.urls.push(await Promise.all(PromiseArr))
                 this.urls = this.urls.flat(1)
-                this.form.img_url = this.urls.join(',')
             },
             delImg(url, i) {
                 this.urls.splice(i, 1)

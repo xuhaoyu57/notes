@@ -43,6 +43,33 @@ export async function postData(url, params = {}) {
     })
     return await res
 }
+//编辑数据
+export async function editData(url, params = {}) {
+    const res = await fetch(API + url+ '?id=eq.' + params.id, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            "apikey": key,
+            "Authorization": `Bearer ${key}`,
+            "Prefer": "return=representation"
+        },
+        body: JSON.stringify(params)
+    })
+    return await res
+}
+// 删除数据
+export async function delData(url, id) {
+    const res = await fetch(API + url + '?id=eq.' + id, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            "apikey": key,
+            "Authorization": `Bearer ${key}`,
+            "Prefer": "return=representation"
+        },
+    })
+    return await res
+}
 //上传图片
 export async function uplaodImg(file) {
     const fileName = String(Date.now()) + file.name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9._-]/g, "")
@@ -71,10 +98,10 @@ export async function delImg(url) {
             "Authorization": `Bearer ${key}`,
         },
     })
-    console.log(res);
+    // console.log(res);
 
-    if (res.status == 200) return alert('删除成功')
-    else return null
+    if (res.status != 200) return alert('删除失败')
+    else return { status: 200 }
 }
 //导出表数据
 let data = []

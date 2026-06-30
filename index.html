@@ -115,6 +115,12 @@
             text-align: center;
         }
 
+        .login {
+            width: 50%;
+            margin: auto;
+            margin-top: 200px;
+        }
+
         /* 手机端 */
         @media (max-width: 768px) {
 
@@ -163,8 +169,11 @@
 
 <body>
     <div id="app" v-cloak>
-
-        <div class="layout">
+        <div v-if="!isLogin" class="login">
+            <input placeholder="请输入密码" v-model="pwd" type="password">
+            <button @click="login">进入</button>
+        </div>
+        <div v-else class="layout">
 
             <aside>
 
@@ -211,7 +220,13 @@
                     <footer>
                         <strong>分类：</strong>{{type[item.type]}}
 
-                        <span class="tag">{{item.label}}</span>
+                        <span v-if="item.label" class="tag">{{item.label}}</span>
+
+                        <div style="margin-left: auto;"><button @click="edit(item.id)"
+                                style="padding:5px 10px;">编辑</button><button
+                                style="margin-left: 10px;background-color: #e27777;border-color: #e27777;padding:5px 10px;"
+                                @dblclick="delData(item)">删除</button>
+                        </div>
                     </footer>
 
                 </article>
@@ -231,12 +246,14 @@
 </body>
 
 <script type="module">
-    import { API, key, img_url, getData, postData, uplaodImg ,downloadCSV} from './index.js';
+    import { API, key, img_url, getData, postData, uplaodImg, downloadCSV, delData, delImg } from './index.js';
 
     new Vue({
         el: '#app',
         data() {
             return {
+                isLogin: false,
+                pwd: '',
                 list: [],
                 type: ['运营笔记', '前端笔记'],//其实应该建表，但是懒得建了
                 typeIndex: 0,
@@ -248,10 +265,19 @@
             }
         },
         created() {
+            if (localStorage.getItem("pwd") == '0807') {
+                this.isLogin = true
+            }
             this.getData()
             this.getLabel()
         },
         methods: {
+            login() {
+                if (this.pwd == '0807') {
+                    this.isLogin = true
+                    localStorage.setItem("pwd", '0807')
+                }
+            },
             selectLabel(label) {
                 this.label = label
                 this.getData()
@@ -260,7 +286,7 @@
                 this.labelList = await getData('label_list')
             },
             async getData() {
-                const form = { limit: 20, type: this.typeIndex, offset: 0 }
+                const form = { limit: 20, type: this.typeIndex, offset: 0, order: 'id.desc' }
                 form.offset = 20 * (this.pageIndex - 1)
                 if (this.label != '全部') form.label = this.label
                 this.list = await getData('notes_list', form, (res) => {
@@ -270,7 +296,7 @@
             },
             async changeType(i) {
                 this.typeIndex = i
-                this.list = await getData('notes_list', { type: i })
+                this.getData()
             },
             async add() {
                 location.href = "./addNotes.html"
@@ -282,8 +308,27 @@
                 this.getData()
             },
             downloadCSV() {
-               downloadCSV('notes_list')
+                downloadCSV('notes_list')
             },
+            async delData(item) {
+                const result = confirm(`确定要删除${item.title}吗？`);
+                if (result) {
+                    const resArr = [delData('notes_list', item.id)]
+                    if (item.img_url) {
+                        item.img_url.split(',').forEach(url => resArr.push(delImg(url)))
+                    }
+                    const res = await Promise.all(resArr)
+                    if (res.every(item => item.status == 200)) {
+                        this.getData()
+                        alert("删除成功");
+                    }
+                    // console.log(res);
+
+                }
+            },
+            edit(id) {
+                location.href = "./addNotes.html?id=" + id
+            }
         }
     })
 
