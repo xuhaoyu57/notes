@@ -72,8 +72,8 @@
 
 <body>
     <div class="container">
-        <h2 style="text-align: start;"><a style="text-decoration: none;color: #000;" href="./index.html">返回笔记</a></h2>
-        <h2>输入4个数字</h2>
+        <h2 style="text-align: start;"><a style="text-decoration: none;color: #000;" href="">刷新</a></h2>
+
         <div style="display: flex;">
             <input type="number" id="num1" placeholder="数字1">
             <input type="number" id="num2" placeholder="数字2">
@@ -84,13 +84,30 @@
 
         <br><br>
 
-        <button onclick="submitNumbers()">确认</button>
+        <button onclick="submitNumbers()">获取答案</button>
 
-        <h3>答案：<span id="ans"></span></h3>
+        <h3>答案：<span id="ans">尚未揭晓</span></h3>
 
     </div>
 
     <script>
+
+        //生成四个有解随机数字
+        function creatFourNum() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            const num3 = Math.floor(Math.random() * 10) + 1;
+            const num4 = Math.floor(Math.random() * 10) + 1;
+            const res = canMake24([num1, num2, num3, num4])
+            if (!res.canMake24) return creatFourNum()
+            else return [num1, num2, num3, num4]
+        }
+        const FourNum = creatFourNum()
+        document.getElementById('num1').value= FourNum[0]
+        document.getElementById('num2').value= FourNum[1]
+        document.getElementById('num3').value= FourNum[2]
+        document.getElementById('num4').value= FourNum[3]
+
         function submitNumbers() {
             const n1 = document.getElementById('num1').value;
             const n2 = document.getElementById('num2').value;

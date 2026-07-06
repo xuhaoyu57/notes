@@ -135,6 +135,7 @@
                 border-right: none;
                 border-bottom: 1px solid #ddd;
                 padding: 16px;
+                position: relative;
             }
 
             main {
@@ -185,7 +186,9 @@
                         :class="{ active: typeIndex==i }">{{item}}</a>
                 </nav>
                 <hr>
-                <div style="display: flex;justify-content: space-between;"><input v-model="ilike" style="padding: 5px;height: 40px;" type="text"><button @click="getData" style="padding: 5px;width: 60px;height: 40px;margin-left: 5px;">搜索</button></div>
+                <div style="display: flex;justify-content: space-between;"><input v-model="ilike"
+                        style="padding: 5px;height: 40px;" type="text"><button @click="getData"
+                        style="padding: 5px;width: 60px;height: 40px;margin-left: 5px;">搜索</button></div>
                 <!-- 标签 -->
                 <h4>🏷 标签</h4>
 
@@ -199,6 +202,10 @@
 
                 <button @click="add">做笔记</button>
                 <button style="margin-top: 20px;" @click="downloadCSV()">导出全部笔记</button>
+
+                <p @click="logout"
+                    style="color: rgb(98, 119, 240);cursor: pointer;position: absolute;bottom: 0;left: 0;right: 0;padding: 14px;">
+                    退出认证状态</p>
             </aside>
 
             <main>
@@ -254,7 +261,7 @@
         data() {
             return {
                 isLogin: false,
-                ilike:'',//模糊搜索
+                ilike: '',//模糊搜索
                 pwd: '',
                 list: [],
                 type: ['运营笔记', '前端笔记'],//其实应该建表，但是懒得建了
@@ -280,6 +287,10 @@
                     localStorage.setItem("pwd", '0807')
                 }
             },
+            logout() {
+                this.isLogin = false
+                localStorage.setItem("pwd", '')
+            },
             selectLabel(label) {
                 this.label = label
                 this.getData()
@@ -288,7 +299,7 @@
                 this.labelList = await getData('label_list')
             },
             async getData() {
-                const form = { limit: 20, type: this.typeIndex, offset: 0, order: 'id.desc',or:`(title.ilike.*${this.ilike}*,content.ilike.*${this.ilike}*)` }
+                const form = { limit: 20, type: this.typeIndex, offset: 0, order: 'id.desc', or: `(title.ilike.*${this.ilike}*,content.ilike.*${this.ilike}*)` }
                 form.offset = 20 * (this.pageIndex - 1)
                 if (this.label != '全部') form.label = this.label
                 this.list = await getData('notes_list', form, (res) => {
