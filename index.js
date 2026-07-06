@@ -4,7 +4,7 @@ export const img_url = "https://daixzsefottmustefsuj.supabase.co/storage/v1/obje
 // export const publicUrl = "https://daixzsefottmustefsuj.supabase.co/storage/v1/object/public/images/"//获取图片接口
 //获取数据
 export async function getData(url, params = {}, callback) {
-    const special = ["limit", "offset", "order", "select"];//这些跳过不添加eq，eq是筛选条件的
+    const special = ["limit", "offset", "order", "select", "or"];//这些跳过不添加eq，eq是筛选条件的
     const query = Object.entries(params)
         .map(([key, value]) => {
             if (special.includes(key)) {
@@ -45,7 +45,7 @@ export async function postData(url, params = {}) {
 }
 //编辑数据
 export async function editData(url, params = {}) {
-    const res = await fetch(API + url+ '?id=eq.' + params.id, {
+    const res = await fetch(API + url + '?id=eq.' + params.id, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",

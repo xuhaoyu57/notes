@@ -34,7 +34,7 @@
 
         aside {
             width: 220px;
-            padding: 20px;
+            padding: 14px;
             border-right: 1px solid #ddd;
             overflow-y: auto;
         }
@@ -171,7 +171,7 @@
 <body>
     <div id="app" v-cloak>
         <div v-if="!isLogin" class="login">
-            <input placeholder="请输入密码" v-model="pwd" type="password">
+            <input placeholder="请输入密码" @keyup.enter="login" v-model="pwd" type="password">
             <button @click="login">进入</button>
         </div>
         <div v-else class="layout">
@@ -185,7 +185,7 @@
                         :class="{ active: typeIndex==i }">{{item}}</a>
                 </nav>
                 <hr>
-
+                <div style="display: flex;justify-content: space-between;"><input v-model="ilike" style="padding: 5px;height: 40px;" type="text"><button @click="getData" style="padding: 5px;width: 60px;height: 40px;margin-left: 5px;">搜索</button></div>
                 <!-- 标签 -->
                 <h4>🏷 标签</h4>
 
@@ -254,6 +254,7 @@
         data() {
             return {
                 isLogin: false,
+                ilike:'',//模糊搜索
                 pwd: '',
                 list: [],
                 type: ['运营笔记', '前端笔记'],//其实应该建表，但是懒得建了
@@ -287,7 +288,7 @@
                 this.labelList = await getData('label_list')
             },
             async getData() {
-                const form = { limit: 20, type: this.typeIndex, offset: 0, order: 'id.desc' }
+                const form = { limit: 20, type: this.typeIndex, offset: 0, order: 'id.desc',or:`(title.ilike.*${this.ilike}*,content.ilike.*${this.ilike}*)` }
                 form.offset = 20 * (this.pageIndex - 1)
                 if (this.label != '全部') form.label = this.label
                 this.list = await getData('notes_list', form, (res) => {
