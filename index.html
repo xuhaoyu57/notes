@@ -122,6 +122,17 @@
             margin-top: 200px;
         }
 
+        .logout {
+            color: rgb(98, 119, 240);
+            cursor: pointer;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 14px;
+            width: 200px;
+        }
+
         /* 手机端 */
         @media (max-width: 768px) {
 
@@ -164,6 +175,11 @@
             .note h3 {
                 font-size: 1.2rem;
             }
+            .logout{
+                left: unset;
+                width: 150px;
+                /* right: 0; */
+            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
@@ -203,8 +219,7 @@
                 <button @click="add">做笔记</button>
                 <button style="margin-top: 20px;" @click="downloadCSV()">导出全部笔记</button>
 
-                <p
-                    style="color: rgb(98, 119, 240);cursor: pointer;position: absolute;bottom: 0;left: 0;right: 0;padding: 14px;width: 200px;">
+                <p class="logout">
                     <span @click="logout">退出认证状态</span>
                 </p>
             </aside>
