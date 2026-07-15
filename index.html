@@ -203,9 +203,10 @@
                 <button @click="add">做笔记</button>
                 <button style="margin-top: 20px;" @click="downloadCSV()">导出全部笔记</button>
 
-                <p @click="logout"
-                    style="color: rgb(98, 119, 240);cursor: pointer;position: absolute;bottom: 0;left: 0;right: 0;padding: 14px;">
-                    退出认证状态</p>
+                <p
+                    style="color: rgb(98, 119, 240);cursor: pointer;position: absolute;bottom: 0;left: 0;right: 0;padding: 14px;width: 200px;">
+                    <span @click="logout">退出认证状态</span>
+                </p>
             </aside>
 
             <main>
@@ -264,7 +265,7 @@
                 ilike: '',//模糊搜索
                 pwd: '',
                 list: [],
-                type: ['运营笔记', '前端笔记','游戏笔记','生活笔记','其它笔记'],//其实应该建表，但是懒得建了
+                type: ['运营笔记', '前端笔记', '游戏笔记', '生活笔记', '其它笔记'],//其实应该建表，但是懒得建了
                 typeIndex: 0,
                 label: '全部',
                 labelList: [],
