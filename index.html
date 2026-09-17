@@ -175,7 +175,8 @@
             .note h3 {
                 font-size: 1.2rem;
             }
-            .logout{
+
+            .logout {
                 left: unset;
                 width: 150px;
                 /* right: 0; */
@@ -219,6 +220,7 @@
                 <button @click="add">做笔记</button>
                 <button style="margin-top: 20px;" @click="downloadCSV()">导出全部笔记</button>
                 <button @click="toLocal" style="margin-top: 10px;">转本地数据</button>
+                <button @click="getJson" style="margin-top: 10px;">{{jsonText}}</button>
                 <p class="logout">
                     <span @click="logout">退出认证状态</span>
                 </p>
@@ -246,7 +248,7 @@
 
                         <span v-if="item.label" class="tag">{{item.label}}</span>
 
-                        <div style="margin-left: auto;"><button @click="edit(item.id)"
+                        <div v-show="jsonText=='读取Json'" style="margin-left: auto;"><button @click="edit(item.id)"
                                 style="padding:5px 10px;">编辑</button><button
                                 style="margin-left: 10px;background-color: #e27777;border-color: #e27777;padding:5px 10px;"
                                 @dblclick="delData(item)">删除</button>
@@ -287,6 +289,7 @@
                 totalCount: 0,
                 totalPage: 0,
                 pageIndex: 1,
+                jsonText: '读取Json'
             }
         },
         created() {
@@ -358,8 +361,14 @@
             edit(id) {
                 location.href = "./addNotes.html?id=" + id
             },
-            toLocal(){
+            toLocal() {
                 location.href = "./csvToJson.html"
+            },
+            getJson() {
+                window.isGetJson = !window.isGetJson
+                if (!window.isGetJson) this.jsonText = '读取Json'
+                else this.jsonText = '读取数据库'
+                this.getData()
             }
         }
     })
