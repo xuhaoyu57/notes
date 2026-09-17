@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CSV 转 JSON</title>
+
+    <!-- Papa Parse -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+        }
+
+        button {
+            margin-top: 15px;
+            margin-right: 10px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        pre {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>CSV 转 JSON</h2>
+
+    <!-- 选择 CSV -->
+    <input type="file" id="csvFile" accept=".csv">
+
+    <br>
+
+    <!-- 读取 -->
+    <button id="readBtn">
+        读取 CSV
+    </button>
+
+    <!-- 下载 JSON -->
+    <button id="downloadBtn" disabled>
+        转换并下载 JSON
+    </button>
+
+    <!-- 显示结果 -->
+    <pre id="output"></pre>
+
+
+    <script>
+
+        // 保存 CSV 转换后的数组
+        let data = [];
+
+
+        // =========================
+        // 读取 CSV
+        // =========================
+
+        document
+            .getElementById("readBtn")
+            .addEventListener("click", function () {
+
+                const fileInput =
+                    document.getElementById("csvFile");
+
+                const file =
+                    fileInput.files[0];
+
+
+                // 没有选择文件
+                if (!file) {
+
+                    alert("请先选择 CSV 文件");
+
+                    return;
+                }
+
+
+                // Papa Parse 读取 CSV
+                Papa.parse(file, {
+
+                    // 第一行作为属性名
+                    header: true,
+
+                    // 自动跳过空行
+                    skipEmptyLines: true,
+
+                    // 自动识别数字
+                    dynamicTyping: true,
+
+                    encoding: "UTF-8",
+
+
+                    // 读取完成
+                    complete: function (result) {
+
+                        // 保存数据
+                        data = result.data;
+
+
+                        // 控制台查看
+                        console.log("转换后的数组：");
+
+                        console.log(data);
+
+
+                        // 页面显示 JSON
+                        document
+                            .getElementById("output")
+                            .textContent =
+                            JSON.stringify(
+                                data,
+                                null,
+                                4
+                            );
+
+
+                        // 开启下载按钮
+                        document
+                            .getElementById("downloadBtn")
+                            .disabled = false;
+
+                    },
+
+
+                    // 错误
+                    error: function (error) {
+
+                        console.error(
+                            "CSV读取失败：",
+                            error
+                        );
+
+                        alert("CSV读取失败");
+
+                    }
+
+                });
+
+            });
+
+
+
+        // =========================
+        // 转 JSON 并下载
+        // =========================
+
+        document
+            .getElementById("downloadBtn")
+            .addEventListener("click", function () {
+
+                // 没有数据
+                if (data.length === 0) {
+
+                    alert("没有可以转换的数据");
+
+                    return;
+                }
+
+
+                // JS数组 → JSON字符串
+                const jsonString =
+                    JSON.stringify(
+                        data,
+                        null,
+                        4
+                    );
+
+
+                // 创建 JSON 文件
+                const blob =
+                    new Blob(
+                        [jsonString],
+                        {
+                            type: "application/json"
+                        }
+                    );
+
+
+                // 创建下载地址
+                const url =
+                    URL.createObjectURL(blob);
+
+
+                // 创建下载链接
+                const a =
+                    document.createElement("a");
+
+
+                a.href = url;
+
+                // 文件名
+                a.download = "data.json";
+
+
+                // 模拟点击下载
+                a.click();
+
+
+                // 释放 URL
+                URL.revokeObjectURL(url);
+
+            });
+
+    </script>
+
+</body>
+
+</html>

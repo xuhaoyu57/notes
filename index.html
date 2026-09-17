@@ -202,7 +202,7 @@
                         :class="{ active: typeIndex==i }">{{item}}</a>
                 </nav>
                 <hr>
-                <div style="display: flex;justify-content: space-between;"><input v-model="ilike"
+                <div style="display: flex;justify-content: space-between;"><input @keyup.enter="getData" v-model="ilike"
                         style="padding: 5px;height: 40px;" type="text"><button @click="getData"
                         style="padding: 5px;width: 60px;height: 40px;margin-left: 5px;">搜索</button></div>
                 <!-- 标签 -->
@@ -218,7 +218,7 @@
 
                 <button @click="add">做笔记</button>
                 <button style="margin-top: 20px;" @click="downloadCSV()">导出全部笔记</button>
-
+                <button @click="toLocal" style="margin-top: 10px;">转本地数据</button>
                 <p class="logout">
                     <span @click="logout">退出认证状态</span>
                 </p>
@@ -357,6 +357,9 @@
             },
             edit(id) {
                 location.href = "./addNotes.html?id=" + id
+            },
+            toLocal(){
+                location.href = "./csvToJson.html"
             }
         }
     })
